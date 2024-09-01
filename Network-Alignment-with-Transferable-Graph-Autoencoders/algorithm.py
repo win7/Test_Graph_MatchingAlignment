@@ -33,7 +33,7 @@ def greedy_match(X):
     M = csr_matrix((data, (row, col)), shape=(m, n))
     return M
 
-def get_match(D, device):
+def get_match(D, device): # Algorithm 1
     P = torch.zeros_like(D)
     size = D.shape[0]
     index_S = [i for i in range(size)]

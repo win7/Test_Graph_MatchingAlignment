@@ -15,7 +15,7 @@ def test_matching(GAE, S_hat_samples, p_samples, S_hat_features, S_emb, device, 
     for i in range(len(S_hat_samples)):
         aux = []
         
-        # adjency matrix
+        # adj matrix
         S_hat_cur = S_hat_samples[i]
         adj = coo_matrix(S_hat_cur.numpy())
         adj_norm = preprocess_graph(adj)
@@ -42,7 +42,8 @@ def test_matching(GAE, S_hat_samples, p_samples, S_hat_features, S_emb, device, 
                 r1 = P_HG[j].cpu()
                 r2 = P[j].cpu()
                 if (r1.equal(r2)):
-                    # print(0, r1)
+                    # print(r1.shape, r2.shape)
+                    # torch.Size([453]) torch.Size([453])                
                     c += 1
                     aux.append(j)
                     
