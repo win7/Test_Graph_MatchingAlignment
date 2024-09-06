@@ -391,7 +391,7 @@ def matrix_to_edge(X):
 	print(option.shape)
 	return option
 
-def heatmap():
+def heatmap(X):
 	plt.matshow(X, cmap='Blues')
 	plt.show()
 
