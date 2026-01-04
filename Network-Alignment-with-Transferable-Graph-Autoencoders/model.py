@@ -15,7 +15,6 @@ class GINConv(torch.nn.Module):
 		X = torch.nn.functional.relu(X)
 		return X
 
-
 class TGAE_Encoder(torch.nn.Module):
 	def __init__(self, input_dim, hidden_dim, output_dim, n_layers):
 		super().__init__()
