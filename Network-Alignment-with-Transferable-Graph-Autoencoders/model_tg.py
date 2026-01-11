@@ -6,11 +6,11 @@ import numpy as np
 import math
 
 
-from torch_geometric.nn import GINConv
+from torch_geometric.nn import GINConv, GINEConv
 from torch.nn import BatchNorm1d as BatchNorm
 from torch.nn import Linear, ReLU, Sequential
 
-print("Using torch-geometric GINConv")
+# GINConv requiere una red neuronal (MLP) como parámetro
 class TGAE_Encoder(nn.Module):
 	def __init__(self, input_dim, hidden_dim, output_dim, n_layers):
 		super().__init__()
@@ -35,12 +35,11 @@ class TGAE_Encoder(nn.Module):
 		initial_X = X.clone()
 		X = self.in_proj(X)
 		hidden_states = [X]
-		
 		for layer in self.convs:
 			# Concatenar características iniciales con las actuales
-			X = torch.cat([initial_X, X], dim=1)
+			X_ = torch.cat([initial_X, X], dim=1)
 			# GINConv de PyG usa edge_index en lugar de matriz de adyacencia
-			X = layer(X, edge_index)
+			X = layer(X_, edge_index)
 			hidden_states.append(X)
 		
 		X = torch.cat(hidden_states, dim=1)
@@ -55,6 +54,52 @@ class TGAE(nn.Module):
 
 	def forward(self, X, edge_index):
 		Z = self.encoder(X, edge_index)
+		return Z
+
+# GINEConv requiere una red neuronal (MLP) como parámetro
+class TGAE_Encoder_(nn.Module):
+	def __init__(self, input_dim, hidden_dim, output_dim, n_layers):
+		super().__init__()
+
+		hidden_layers = n_layers - 2
+		self.in_proj = nn.Linear(input_dim, hidden_dim[0])
+		self.convs = nn.ModuleList()
+		
+		# GINConv requiere una red neuronal (MLP) como parámetro
+		for i in range(hidden_layers):
+			mlp = nn.Sequential(
+				Linear(input_dim+hidden_dim[i], 2 * hidden_dim[i+1]),
+				BatchNorm(2 * hidden_dim[i+1]),
+				ReLU(),
+				Linear(2 * hidden_dim[i+1], hidden_dim[i+1])
+			)
+			self.convs.append(GINEConv(mlp, edge_dim=1))
+		
+		self.out_proj = nn.Linear(sum(hidden_dim), output_dim)
+
+	def forward(self, X, edge_index, edge_attr):
+		initial_X = X.clone()
+		X = self.in_proj(X)
+		hidden_states = [X]
+		for layer in self.convs:
+			# Concatenar características iniciales con las actuales
+			X_ = torch.cat([initial_X, X], dim=1) # Change dim
+			# GINConv de PyG usa edge_index en lugar de matriz de adyacencia
+			X = layer(X_, edge_index, edge_attr)
+			hidden_states.append(X)
+		
+		X = torch.cat(hidden_states, dim=1)
+		X = self.out_proj(X)
+		return X
+
+class TGAE_(nn.Module):
+	def __init__(self, num_hidden_layers, input_dim, hidden_dim, output_dim):
+		super().__init__()
+
+		self.encoder = TGAE_Encoder_(input_dim, hidden_dim, output_dim, num_hidden_layers + 2)
+
+	def forward(self, X, edge_index, edge_attr):
+		Z = self.encoder(X, edge_index, edge_attr)
 		return Z
 
 # Ejemplo de uso:
