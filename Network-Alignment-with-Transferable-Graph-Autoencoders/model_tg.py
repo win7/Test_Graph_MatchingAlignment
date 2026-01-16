@@ -10,8 +10,19 @@ from torch_geometric.nn import GINConv, GINEConv
 from torch.nn import BatchNorm1d as BatchNorm
 from torch.nn import Linear, ReLU, Sequential
 
-# GINConv requiere una red neuronal (MLP) como parámetro
-class TGAE_Encoder(nn.Module):
+# GINConv
+"""
+forward(
+    x: Tensor, 
+    edge_index: Union[Tensor, SparseTensor],
+    edge_weight: Optional[Tensor] = None, 
+    edge_attr: Optional[Tensor] = None, 
+    batch: Optional[Tensor] = None, 
+    batch_size: Optional[int] = None, 
+    num_sampled_nodes_per_hop: Optional[List[int]] = None, 
+    num_sampled_edges_per_hop: Optional[List[int]] = None)
+"""
+class TGAE_Encoder_GIN(nn.Module):
 	def __init__(self, input_dim, hidden_dim, output_dim, n_layers):
 		super().__init__()
 
@@ -46,18 +57,26 @@ class TGAE_Encoder(nn.Module):
 		X = self.out_proj(X)
 		return X
 
-class TGAE(nn.Module):
+class TGAE_GIN(nn.Module):
 	def __init__(self, num_hidden_layers, input_dim, hidden_dim, output_dim):
 		super().__init__()
 
-		self.encoder = TGAE_Encoder(input_dim, hidden_dim, output_dim, num_hidden_layers + 2)
+		self.encoder = TGAE_Encoder_GIN(input_dim, hidden_dim, output_dim, num_hidden_layers + 2)
 
 	def forward(self, X, edge_index):
 		Z = self.encoder(X, edge_index)
 		return Z
 
-# GINEConv requiere una red neuronal (MLP) como parámetro
-class TGAE_Encoder_(nn.Module):
+# GINEConv
+"""
+forward(
+    x: Union[Tensor, Tuple[Tensor, Optional[Tensor]]], 
+    edge_index: Union[Tensor, SparseTensor], 
+    edge_attr: Optional[Tensor] = None, 
+    size: Optional[Tuple[int, int]] = None
+)
+"""
+class TGAE_Encoder_GINE(nn.Module):
 	def __init__(self, input_dim, hidden_dim, output_dim, n_layers):
 		super().__init__()
 
@@ -84,7 +103,6 @@ class TGAE_Encoder_(nn.Module):
 		for layer in self.convs:
 			# Concatenar características iniciales con las actuales
 			X_ = torch.cat([initial_X, X], dim=1) # Change dim
-			# GINConv de PyG usa edge_index en lugar de matriz de adyacencia
 			X = layer(X_, edge_index, edge_attr)
 			hidden_states.append(X)
 		
@@ -92,11 +110,11 @@ class TGAE_Encoder_(nn.Module):
 		X = self.out_proj(X)
 		return X
 
-class TGAE_(nn.Module):
+class TGAE_GINE(nn.Module):
 	def __init__(self, num_hidden_layers, input_dim, hidden_dim, output_dim):
 		super().__init__()
 
-		self.encoder = TGAE_Encoder_(input_dim, hidden_dim, output_dim, num_hidden_layers + 2)
+		self.encoder = TGAE_Encoder_GINE(input_dim, hidden_dim, output_dim, num_hidden_layers + 2)
 
 	def forward(self, X, edge_index, edge_attr):
 		Z = self.encoder(X, edge_index, edge_attr)
