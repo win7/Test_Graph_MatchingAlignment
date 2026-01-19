@@ -13,14 +13,9 @@ from torch.nn import Linear, ReLU, Sequential
 # GINConv
 """
 forward(
-    x: Tensor, 
-    edge_index: Union[Tensor, SparseTensor],
-    edge_weight: Optional[Tensor] = None, 
-    edge_attr: Optional[Tensor] = None, 
-    batch: Optional[Tensor] = None, 
-    batch_size: Optional[int] = None, 
-    num_sampled_nodes_per_hop: Optional[List[int]] = None, 
-    num_sampled_edges_per_hop: Optional[List[int]] = None)
+    x: Union[Tensor, Tuple[Tensor, Optional[Tensor]]], 
+    edge_index: Union[Tensor, SparseTensor], 
+    size: Optional[Tuple[int, int]] = None) → Tensor
 """
 class TGAE_Encoder_GIN(nn.Module):
 	def __init__(self, input_dim, hidden_dim, output_dim, n_layers):
@@ -92,17 +87,18 @@ class TGAE_Encoder_GINE(nn.Module):
 				ReLU(),
 				Linear(2 * hidden_dim[i+1], hidden_dim[i+1])
 			)
-			self.convs.append(GINEConv(mlp, edge_dim=1))
+			self.convs.append(GINEConv(mlp, edge_dim=3)) # Change edge_atribute
 		
 		self.out_proj = nn.Linear(sum(hidden_dim), output_dim)
 
 	def forward(self, X, edge_index, edge_attr):
+		# print(edge_attr.shape[1])
 		initial_X = X.clone()
 		X = self.in_proj(X)
 		hidden_states = [X]
 		for layer in self.convs:
 			# Concatenar características iniciales con las actuales
-			X_ = torch.cat([initial_X, X], dim=1) # Change dim
+			X_ = torch.cat([initial_X, X], dim=1)
 			X = layer(X_, edge_index, edge_attr)
 			hidden_states.append(X)
 		
