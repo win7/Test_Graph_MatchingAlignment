@@ -8,7 +8,7 @@ import math
 
 from torch_geometric.nn import GINConv, GINEConv
 from torch.nn import BatchNorm1d as BatchNorm
-from torch.nn import Linear, ReLU, Sequential
+from torch.nn import Linear, ReLU, LeakyReLU, Sequential, Dropout
 
 # GINConv
 """
@@ -27,14 +27,100 @@ class TGAE_Encoder_GIN(nn.Module):
 		
 		# GINConv requiere una red neuronal (MLP) como parámetro
 		for i in range(hidden_layers):
-			mlp = nn.Sequential(
+			""" mlp = Sequential(
+				Linear(input_dim+hidden_dim[i], hidden_dim[i+1]),
+				ReLU()
+			) """
+			""" mlp = nn.Sequential(
 				Linear(input_dim+hidden_dim[i], 2 * hidden_dim[i+1]),
 				BatchNorm(2 * hidden_dim[i+1]),
 				ReLU(),
 				Linear(2 * hidden_dim[i+1], hidden_dim[i+1])
+			) """
+			""" mlp = nn.Sequential(
+				BatchNorm(input_dim + hidden_dim[i]),
+				Linear(input_dim+hidden_dim[i], 2 * hidden_dim[i+1]),
+				BatchNorm(2 * hidden_dim[i+1]),
+				ReLU(),
+				Linear(2 * hidden_dim[i+1], hidden_dim[i+1])
+			) """
+			""" mlp = nn.Sequential(
+				BatchNorm(input_dim + hidden_dim[i]),
+				Linear(input_dim+hidden_dim[i], 2 * hidden_dim[i+1]),
+				LeakyReLU(0.1),
+				Linear(2 * hidden_dim[i+1], hidden_dim[i+1])
+			) """
+			""" mlp = nn.Sequential(
+				Linear(input_dim+hidden_dim[i], 2 * hidden_dim[i+1]),
+				BatchNorm(2 * hidden_dim[i+1]),
+				LeakyReLU(0.1),
+				Dropout(p=0.2),
+				Linear(2 * hidden_dim[i+1], hidden_dim[i+1])
+			) """
+			""" mlp = nn.Sequential(
+				BatchNorm(input_dim + hidden_dim[i]),
+				Linear(input_dim+hidden_dim[i], 4 * hidden_dim[i+1]),
+				LeakyReLU(0.1),
+				Linear(4 * hidden_dim[i+1], hidden_dim[i+1])
+			) """
+			""" mlp = nn.Sequential(
+				nn.Linear(input_dim + hidden_dim[i], 2 * hidden_dim[i+1]),
+				nn.LayerNorm(2 * hidden_dim[i+1]),
+				nn.GELU(),
+				nn.Linear(2 * hidden_dim[i+1], hidden_dim[i+1])
+			) """
+			""" mlp = nn.Sequential(
+				nn.Linear(input_dim + hidden_dim[i], 2 * hidden_dim[i+1]),
+				nn.LayerNorm(2 * hidden_dim[i+1]),
+				nn.GELU(),
+				nn.Dropout(p=0.2),
+				nn.Linear(2 * hidden_dim[i+1], hidden_dim[i+1])
+			) """
+			""" mlp = nn.Sequential(
+				nn.Linear(input_dim + hidden_dim[i], 2 * hidden_dim[i+1]),
+				nn.LayerNorm(2 * hidden_dim[i+1]),
+				nn.GELU(),
+				nn.Linear(2 * hidden_dim[i+1], 2 * hidden_dim[i+1]),
+				nn.GELU(),
+				nn.Linear(2 * hidden_dim[i+1], hidden_dim[i+1])
+			) """
+			mlp = nn.Sequential(
+				nn.Linear(input_dim + hidden_dim[i], 2 * hidden_dim[i+1]),
+				nn.LayerNorm(2 * hidden_dim[i+1]),
+				LeakyReLU(0.1),
+				nn.Linear(2 * hidden_dim[i+1], 2 * hidden_dim[i+1]),
+				LeakyReLU(0.1),
+				nn.Linear(2 * hidden_dim[i+1], hidden_dim[i+1])
 			)
+			""" mlp = nn.Sequential(
+				nn.LayerNorm(input_dim + hidden_dim[i]), # pre-activation
+				nn.Linear(input_dim + hidden_dim[i], 2 * hidden_dim[i+1]),
+				nn.LayerNorm(2 * hidden_dim[i+1]),
+				LeakyReLU(0.1),
+				nn.Dropout(p=0.2),
+				nn.Linear(2 * hidden_dim[i+1], hidden_dim[i+1])
+			) """
+			""" mlp = nn.Sequential(
+				BatchNorm(input_dim + hidden_dim[i]),
+				nn.Linear(input_dim + hidden_dim[i], 2 * hidden_dim[i+1]),
+				nn.LayerNorm(2 * hidden_dim[i+1]),
+				LeakyReLU(0.1),
+				nn.Linear(2 * hidden_dim[i+1], 2 * hidden_dim[i+1]),
+				LeakyReLU(0.1),
+				nn.Linear(2 * hidden_dim[i+1], hidden_dim[i+1])
+			) """
+			""" mlp = nn.Sequential(
+				nn.LayerNorm(input_dim + hidden_dim[i]),
+				nn.Linear(input_dim + hidden_dim[i], 2 * hidden_dim[i+1]),
+				nn.LayerNorm(2 * hidden_dim[i+1]),
+				LeakyReLU(0.1),
+				nn.Linear(2 * hidden_dim[i+1], 2 * hidden_dim[i+1]),
+				LeakyReLU(0.1),
+				nn.Linear(2 * hidden_dim[i+1], hidden_dim[i+1])
+			) """
+
 			self.convs.append(GINConv(mlp))
-		
+
 		self.out_proj = nn.Linear(sum(hidden_dim), output_dim)
 
 	def forward(self, X, edge_index):
@@ -81,13 +167,88 @@ class TGAE_Encoder_GINE(nn.Module):
 		
 		# GINConv requiere una red neuronal (MLP) como parámetro
 		for i in range(hidden_layers):
-			mlp = nn.Sequential(
+			""" mlp = Sequential(
+				Linear(input_dim+hidden_dim[i], hidden_dim[i+1]),
+				ReLU()
+			) """
+			""" mlp = nn.Sequential(
 				Linear(input_dim+hidden_dim[i], 2 * hidden_dim[i+1]),
 				BatchNorm(2 * hidden_dim[i+1]),
 				ReLU(),
 				Linear(2 * hidden_dim[i+1], hidden_dim[i+1])
+			) """
+			""" mlp = nn.Sequential(
+				BatchNorm(input_dim + hidden_dim[i]),
+				Linear(input_dim+hidden_dim[i], 2 * hidden_dim[i+1]),
+				BatchNorm(2 * hidden_dim[i+1]),
+				ReLU(),
+				Linear(2 * hidden_dim[i+1], hidden_dim[i+1])
+			) """
+			""" mlp = nn.Sequential(
+				BatchNorm(input_dim + hidden_dim[i]),
+				Linear(input_dim+hidden_dim[i], 2 * hidden_dim[i+1]),
+				LeakyReLU(0.1),
+				Linear(2 * hidden_dim[i+1], hidden_dim[i+1])
+			) """
+			""" mlp = nn.Sequential(
+				Linear(input_dim+hidden_dim[i], 2 * hidden_dim[i+1]),
+				BatchNorm(2 * hidden_dim[i+1]),
+				LeakyReLU(0.1),
+				Dropout(p=0.2),
+				Linear(2 * hidden_dim[i+1], hidden_dim[i+1])
+			) """
+			""" mlp = nn.Sequential(
+				BatchNorm(input_dim + hidden_dim[i]),
+				Linear(input_dim+hidden_dim[i], 4 * hidden_dim[i+1]),
+				LeakyReLU(0.1),
+				Linear(4 * hidden_dim[i+1], hidden_dim[i+1])
+			) """
+			""" mlp = nn.Sequential(
+				nn.Linear(input_dim + hidden_dim[i], 2 * hidden_dim[i+1]),
+				nn.LayerNorm(2 * hidden_dim[i+1]),
+				nn.GELU(),
+				nn.Linear(2 * hidden_dim[i+1], hidden_dim[i+1])
+			) """
+			""" mlp = nn.Sequential(
+				nn.Linear(input_dim + hidden_dim[i], 2 * hidden_dim[i+1]),
+				nn.LayerNorm(2 * hidden_dim[i+1]),
+				nn.GELU(),
+				nn.Dropout(p=0.2),
+				nn.Linear(2 * hidden_dim[i+1], hidden_dim[i+1])
+			) """
+			""" mlp = nn.Sequential(
+				nn.Linear(input_dim + hidden_dim[i], 2 * hidden_dim[i+1]),
+				nn.LayerNorm(2 * hidden_dim[i+1]),
+				nn.GELU(),
+				nn.Linear(2 * hidden_dim[i+1], 2 * hidden_dim[i+1]),
+				nn.GELU(),
+				nn.Linear(2 * hidden_dim[i+1], hidden_dim[i+1])
+			) """
+			""" mlp = nn.Sequential(
+				nn.Linear(input_dim + hidden_dim[i], 2 * hidden_dim[i+1]),
+				nn.LayerNorm(2 * hidden_dim[i+1]),
+				LeakyReLU(0.1),
+				nn.Linear(2 * hidden_dim[i+1], 2 * hidden_dim[i+1]),
+				LeakyReLU(0.1),
+				nn.Linear(2 * hidden_dim[i+1], hidden_dim[i+1])
+			) """
+			""" mlp = nn.Sequential(
+				nn.LayerNorm(input_dim + hidden_dim[i]), # pre-activation
+				nn.Linear(input_dim + hidden_dim[i], 2 * hidden_dim[i+1]),
+				nn.LayerNorm(2 * hidden_dim[i+1]),
+				LeakyReLU(0.1),
+				nn.Dropout(p=0.2),
+				nn.Linear(2 * hidden_dim[i+1], hidden_dim[i+1])
+			) """
+			mlp = nn.Sequential(
+				nn.Linear(input_dim + hidden_dim[i], 2 * hidden_dim[i+1]),
+				nn.LayerNorm(2 * hidden_dim[i+1]),
+				LeakyReLU(0.1),
+				nn.Linear(2 * hidden_dim[i+1], 2 * hidden_dim[i+1]),
+				LeakyReLU(0.1),
+				nn.Linear(2 * hidden_dim[i+1], hidden_dim[i+1])
 			)
-			self.convs.append(GINEConv(mlp, edge_dim=3)) # Change edge_atribute
+			self.convs.append(GINEConv(mlp, edge_dim=1)) # Change edge_atribute
 		
 		self.out_proj = nn.Linear(sum(hidden_dim), output_dim)
 
@@ -98,8 +259,8 @@ class TGAE_Encoder_GINE(nn.Module):
 		hidden_states = [X]
 		for layer in self.convs:
 			# Concatenar características iniciales con las actuales
-			X_ = torch.cat([initial_X, X], dim=1)
-			X = layer(X_, edge_index, edge_attr)
+			X_cat = torch.cat([initial_X, X], dim=1)
+			X = layer(X_cat, edge_index, edge_attr)
 			hidden_states.append(X)
 		
 		X = torch.cat(hidden_states, dim=1)
@@ -180,7 +341,6 @@ class TGAE(torch.nn.Module):
 		Z = self.encoder(adj, X)
 		# print(4)
 		return Z """
-
 
 # Original code before edits
 """ class GINConv(torch.nn.Module):
