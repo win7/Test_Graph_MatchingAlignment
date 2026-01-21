@@ -248,7 +248,7 @@ class TGAE_Encoder_GINE(nn.Module):
 				LeakyReLU(0.1),
 				nn.Linear(2 * hidden_dim[i+1], hidden_dim[i+1])
 			)
-			self.convs.append(GINEConv(mlp, edge_dim=1)) # Change edge_atribute
+			self.convs.append(GINEConv(mlp, edge_dim=1)) # Change edge_attribute
 		
 		self.out_proj = nn.Linear(sum(hidden_dim), output_dim)
 
