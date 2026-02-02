@@ -120,7 +120,6 @@ class TGAE_Encoder_GIN(nn.Module):
 			) """
 
 			self.convs.append(GINConv(mlp))
-
 		self.out_proj = nn.Linear(sum(hidden_dim), output_dim)
 
 	def forward(self, X, edge_index):
